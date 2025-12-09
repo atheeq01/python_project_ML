@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy>=1.4
+psycopg2-binary
+alembic
+pydantic
+python-jose[cryptography]
+passlib[bcrypt]
+transformers
+tensorflow>=2.10
+numpy
+scikit-learn
+python-dotenv
+aiofiles
+python-multipart
