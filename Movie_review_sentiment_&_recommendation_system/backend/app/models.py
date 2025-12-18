@@ -34,7 +34,7 @@ class Movie(Base):
     # attribute
     title = Column(String, nullable=False, index=True)
     description = Column(String, nullable=False)
-    metadata = Column(JSONB, nullable=False)  # genres, year, cast ....
+    movie_metadata = Column(JSONB, nullable=False)  # genres, year, cast ....
     # relationship
     owner = relationship("User", back_populates="movies")
     reviews = relationship("Review", back_populates="movie")

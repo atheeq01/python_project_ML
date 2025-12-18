@@ -10,13 +10,13 @@ def _load_embeddings(db: Session):
     ids = [r.movie.id for r in rows]
     if not rows:
         return ids, np.array([])
-    emb = np.array([r.embeddingsfor for r in rows], dtype=np.float32)
+    emb = np.array([r.embedding for r in rows], dtype=np.float32)
     return ids, emb
 
 
 def recommend_similar_movies(db: Session, movie_id: int, top_k: int = 10) -> List[int]:
     ids, embeddings = _load_embeddings(db)
-    if embeddings is None or embeddings == 0:
+    if embeddings is None or len(embeddings) == 0:
         return []
     try:
         idx = ids.index(movie_id)
@@ -25,7 +25,7 @@ def recommend_similar_movies(db: Session, movie_id: int, top_k: int = 10) -> Lis
 
     # Compute cosine similarity between the movie's embedding and all movie embeddings.
     similarities = cosine_similarity(embeddings[idx:idx + 1], embeddings)[0]
-    # We exclude the movie itself by setting similarity = -1 (so it won’t appear in recommendations).
+    # exclude the movie itself by setting similarity = -1 (so it won’t appear in recommendations).
     similarities[idx] = -1
     # Sort similarity values in descending order and get top-K indexes.
     top_idx = np.argsort(-similarities)[:top_k]
@@ -36,8 +36,8 @@ def recommend_for_user(db: Session, user_id: int, top_k: int = 10) -> List[int]:
     ids, embeddings = _load_embeddings(db)
     if embeddings is None or embeddings == 0:
         return []
-    clicks = db.query(models.ClickHistory), filter(models.ClickHistory.user_id == user_id).all()
-    reviews = db.query(models.Review).filter(models.Review.user_id == user_id).all()
+    clicks = db.query(models.ClickHistory).filter(models.ClickHistory.user_id == user_id).all()
+    clicked_ids = [c.movie.id for c in clicks]
 
     pos_reviews = db.query(models.Review).filter(models.Review.user_id == user_id,
                                                  models.Review.sentiment_label == "positive").all()
@@ -45,9 +45,9 @@ def recommend_for_user(db: Session, user_id: int, top_k: int = 10) -> List[int]:
 
     # combine singles with weight
     signal = {}
-    for mID in clicks:
+    for mID in clicked_ids:
         signal[mID] = signal.get(mID, 0.0) + 1.0
-    for mID in reviews:
+    for mID in pos_ids:
         signal[mID] = signal.get(mID, 0.0) + 3.0
 
     if not signal:
@@ -60,5 +60,19 @@ def recommend_for_user(db: Session, user_id: int, top_k: int = 10) -> List[int]:
             i = ids.index(mID)
             vecs.append(embeddings[i])
             weights.append(weight)
+    if not vecs:
+        return []
 
+    vecs = np.array(vecs)
+    weights = np.array(weights).reshape(-1,1)
+    agg = (vecs * weights).sum(axis=0)/weights.sum()
+    sims = cosine_similarity(agg.reshape(1,-1), embeddings)[0]
 
+    # exclude already interacted
+    excluded = set(clicked_ids) | set([r.movie.id for r in db.query(models.Review).filter(models.Review.user_id == user_id).all()])
+    for ex in excluded:
+        if ex in ids:
+            sims[ids.index(ex)] = -1
+
+    top_idx = np.argsort(-sims)[:top_k]
+    return [ids[i] for i in top_idx]

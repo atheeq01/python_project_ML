@@ -24,7 +24,7 @@ class UserOut(BaseModel):
     is_superuser: bool = True
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserUpdate(BaseModel):
@@ -48,7 +48,7 @@ class MovieOut(BaseModel):
     metadata: Optional[Dict] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- reviews ---
 class ReviewCreate(BaseModel):
@@ -63,7 +63,7 @@ class ReviewOut(BaseModel):
     sentiment_scores: Dict[str, float]
     created_at: datetime
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- click history ---
 class ClickOut(BaseModel):
@@ -72,7 +72,7 @@ class ClickOut(BaseModel):
     movie_id: int
     created_at: datetime
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- recommendation requests ---
 class RecommendationCreate(BaseModel):
