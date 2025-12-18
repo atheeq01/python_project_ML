@@ -10,3 +10,4 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Movie Recommender+ Sentiment API")
 
 app.include_router(auth_router.router)
+app.include_router(admin_router.router)
