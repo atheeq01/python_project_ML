@@ -38,14 +38,14 @@ class UserUpdate(BaseModel):
 class MovieIn(BaseModel):
     title: str
     description: Optional[str] = None
-    metadata: Optional[Dict] = None
+    movie_metadata: Optional[Dict] = None
 
 
 class MovieOut(BaseModel):
     id: int
     title: str
     description: Optional[str] = None
-    metadata: Optional[Dict] = None
+    movie_metadata: Optional[Dict] = None
 
     class Config:
         from_attributes = True
