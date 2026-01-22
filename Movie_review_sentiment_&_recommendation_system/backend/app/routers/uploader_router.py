@@ -5,7 +5,7 @@ from typing import Dict
 from app.schemas import MovieIn, MovieOut
 from app.deps import get_db, get_current_user, require_roles
 from app import models
-from sqlalchemy.sql.functions import current_user
+
 
 router = APIRouter(prefix="/uploader", tags=["uploader"], dependencies=[Depends(require_roles("admin", "uploader"))])
 
@@ -25,8 +25,8 @@ def create_movie(movie_in: MovieIn, db: Session = Depends(get_db), current_user=
 
 
 @router.patch("/movies/{movie_id}", response_model=MovieOut)
-def update_movie(movie_in: MovieIn, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    movie = db.query(models.Movie).filter(models.Movie.id == movie_in.id).first()
+def update_movie(movie_id: int,movie_in: MovieIn, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    movie = db.query(models.Movie).filter(models.Movie.id == movie_id).first()
     if not movie:
         raise HTTPException(status_code=404, detail="Movie not found")
     if current_user.id != movie.owner_id and not current_user.is_superuser:
@@ -55,7 +55,7 @@ def delete_movie(movie_id: int, db: Session = Depends(get_db), current_user=Depe
     return
 
 @router.get("/movies/{movie_id}/stat")
-def movie_stat(movie_id: int, db: Session = Depends(get_db)):
+def movie_stat(movie_id: int, db: Session = Depends(get_db),current_user=Depends(get_current_user)):
     movie = db.query(models.Movie).filter(models.Movie.id == movie_id).first()
     if not movie:
         raise HTTPException(status_code=404, detail="Movie not found")
@@ -66,7 +66,7 @@ def movie_stat(movie_id: int, db: Session = Depends(get_db)):
     nue = db.query(func.count(models.Review.id)).filter(models.Review.movie_id == movie_id,models.Review.sentiment_label=="neutral").scalar() or 0
     neg = db.query(func.count(models.Review.id)).filter(models.Review.movie_id == movie_id,models.Review.sentiment_label=="negative").scalar() or 0
     def percentage(value):
-        if value < 0:
+        if value <= 0:
             return 0
         return 100 * (value / total)
     return {

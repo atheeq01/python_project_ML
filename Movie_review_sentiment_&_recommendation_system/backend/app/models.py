@@ -76,5 +76,8 @@ class ClickHistory(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     # relationships
-    user = relationship("User", backref="click_history")
-    movie = relationship("Movie", backref="click_history")
+    # old
+    # user = relationship("User", backref="click_history")
+    # movie = relationship("Movie", backref="click_history")
+    user = relationship("User", back_populates="clicks")
+    movie = relationship("Movie", back_populates="clicks")
