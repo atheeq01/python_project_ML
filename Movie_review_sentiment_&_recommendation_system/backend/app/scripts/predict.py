@@ -1,9 +1,14 @@
+import os
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+
 import tensorflow as tf
 from transformers import AutoTokenizer, TFAutoModelForSequenceClassification
 
 
 gpu = tf.config.list_physical_devices('GPU')
 if gpu:
+    tf.config.experimental.enable_tensor_float_32_execution(False)
+    tf.config.set_visible_devices([], 'GPU')
     name = tf.config.experimental.get_device_details(gpu[0]).get("device_name","unknown")
     print("CUDA available: TRUE")
     print("GPU name: ",name)
@@ -13,7 +18,7 @@ else:
 
 
 MODEL_ID = "atheeq01/movie_sentima_bert"
-CACHE_DIR = "../../../assets/"
+CACHE_DIR = "../assets/"
 
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)

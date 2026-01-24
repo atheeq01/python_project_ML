@@ -63,7 +63,6 @@ def movie_stat(movie_id: int, db: Session = Depends(get_db),current_user=Depends
         raise HTTPException(status_code=403, detail="You are not allowed to perform this action")
     total = db.query(func.count(models.Review.id)).filter(models.Review.movie_id == movie_id).scalar() or 0
     pos = db.query(func.count(models.Review.id)).filter(models.Review.movie_id == movie_id,models.Review.sentiment_label=="positive").scalar() or 0
-    nue = db.query(func.count(models.Review.id)).filter(models.Review.movie_id == movie_id,models.Review.sentiment_label=="neutral").scalar() or 0
     neg = db.query(func.count(models.Review.id)).filter(models.Review.movie_id == movie_id,models.Review.sentiment_label=="negative").scalar() or 0
     def percentage(value):
         if value <= 0:
@@ -73,8 +72,7 @@ def movie_stat(movie_id: int, db: Session = Depends(get_db),current_user=Depends
         "movie_id": movie_id,
         "total": total,
         "positive":{"count":pos,"percentage":percentage(pos)},
-        "neutral":{"count":nue,"percentage":percentage(nue)},
-        "negative":{"count":neg,"percentage":percentage(nue)},
+        "negative":{"count":neg,"percentage":percentage(neg)},
     }
 
 

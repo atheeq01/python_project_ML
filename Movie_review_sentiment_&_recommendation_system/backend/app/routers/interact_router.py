@@ -1,13 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
 from app.deps import get_current_user, get_db
 from app import models
 from app.schemas import ReviewCreate, ReviewOut, ClickOut, RecommendForUserRequest, MovieOut
-from app.services.recommender import recommend_for_user, recommend_similar_movies
+from app.utils.recommender import  recommend_similar_movies # ,recommend_for_user,
 from app.utils.security import create_access_token
 from app.scripts.predict import predict_sentiment
-from sqlalchemy.sql.functions import current_user
 
 router = APIRouter(prefix="/interact", tags=["interact"])
 
@@ -52,7 +50,7 @@ def save_review(movie_id: int, payload: ReviewCreate,db: Session = Depends(get_d
         movie_id=movie.id,
         text=payload.text,
         sentiment_label=pred["label"],
-        sentiment_scores=pred["scores"]
+        sentiment_scores=pred["score"]
     )
     db.add(review)
     db.commit()
