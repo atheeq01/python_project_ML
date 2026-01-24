@@ -6,19 +6,29 @@ from app import models
 from app.schemas import ReviewCreate, ReviewOut, ClickOut, RecommendForUserRequest, MovieOut
 from app.services.recommender import recommend_for_user, recommend_similar_movies
 from app.utils.security import create_access_token
+from app.scripts.predict import predict_sentiment
 from sqlalchemy.sql.functions import current_user
 
 router = APIRouter(prefix="/interact", tags=["interact"])
 
 
 def predict_sentiment_dummy(text: str):
-    text_lower = text.lower()
-    if "love" in text_lower or "great" in text_lower or "amazing" in text_lower:
-        return {"label": "positive", "scores": {"positive": 0.9, "neutral": 0.08, "negative": 0.02}}
-    if "bad" in text_lower or "hate" in text_lower or "worst" in text_lower:
-        return {"label": "negative", "scores": {"positive": 0.02, "neutral": 0.08, "negative": 0.9}}
-    return {"label": "neutral", "scores": {"positive": 0.1, "neutral": 0.8, "negative": 0.1}}
-
+    label_id, confidence = predict_sentiment(text)
+    if label_id == 1:
+        return {
+            "label": "positive",
+            "score": {
+                "positive": confidence,
+                "negative": 1-confidence,
+            }
+        }
+    return {
+        "label": "negative",
+        "score": {
+            "positive": 1-confidence,
+            "negative": confidence,
+        }
+    }
 
 @router.post("/movies/{movie_id}/click", response_model=ClickOut)
 def save_click(movie_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
@@ -49,6 +59,6 @@ def save_review(movie_id: int, payload: ReviewCreate,db: Session = Depends(get_d
     db.refresh(review)
     return review
 
-@router.post("/recommend_for_user", response_model=List[MovieOut])
-def recommend_for_user_endpoint(request: RecommendForUserRequest, db: Session = Depends(get_db)):
-    rec_ids = recommend
+# @router.post("/recommend_for_user", response_model=List[MovieOut])
+# def recommend_for_user_endpoint(request: RecommendForUserRequest, db: Session = Depends(get_db)):
+#     rec_ids = recommend
