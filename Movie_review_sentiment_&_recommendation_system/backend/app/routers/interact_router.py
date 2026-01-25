@@ -14,14 +14,14 @@ def predict_sentiment_dummy(text: str):
     label_id, confidence = predict_sentiment(text)
     if label_id == 1:
         return {
-            "label": "positive",
+            "label": label_id,
             "score": {
                 "positive": confidence,
                 "negative": 1-confidence,
             }
         }
     return {
-        "label": "negative",
+        "label": label_id,
         "score": {
             "positive": 1-confidence,
             "negative": confidence,
